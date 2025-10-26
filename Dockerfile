@@ -1,32 +1,20 @@
-# Use the official Python runtime image
-FROM python:3.13  
- 
-# Create the app directory
-RUN mkdir /app
- 
-# Set the working directory inside the container
+# Étape 1 : choisir l'image Python
+FROM python:3.13
+
+# Étape 2 : définir le répertoire de travail
 WORKDIR /app
- 
-# Set environment variables 
-# Prevents Python from writing pyc files to disk
-ENV PYTHONDONTWRITEBYTECODE=1
-#Prevents Python from buffering stdout and stderr
-ENV PYTHONUNBUFFERED=1 
- 
-# Upgrade pip
-RUN pip install --upgrade pip 
- 
-# Copy the Django project  and install dependencies
-COPY requirements.txt  /app/
- 
-# run this command to install all dependencies 
+
+# Étape 3 : copier les fichiers
+COPY requirements.txt .
+
+# Étape 4 : installer les dépendances
 RUN pip install --no-cache-dir -r requirements.txt
- 
-# Copy the Django project to the container
-COPY . /app/
- 
-# Expose the Django port
-EXPOSE 8000
- 
-# Run Django’s development server
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+
+# Étape 5 : copier tout le projet
+COPY . .
+
+# Étape 6 : collecter les fichiers statiques
+RUN python manage.py collectstatic --noinput
+
+# Étape 7 : lancer Gunicorn (serveur Django de prod)
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "gestion_employe.wsgi:application"]
